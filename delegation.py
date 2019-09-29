@@ -25,6 +25,7 @@ class DelegatesAttrsType(type):
             setattr(cls, delegation.name, method)
 
     def make_method(cls, delegation):
+        ex_locals = {}
         method_def = f"""
 @property
 def {delegation.name}(self):
@@ -36,8 +37,8 @@ def {delegation.name}(self):
 def {delegation.name}(self, new_value):
     self.{delegation.target_name}.{delegation.attr_name} = new_value
 """
-        exec(method_def)
-        return eval(f'{delegation.name}')
+        exec(method_def, {}, ex_locals)
+        return ex_locals[delegation.name]
 
 
 class DelegatesAttrs(metaclass=DelegatesAttrsType):
