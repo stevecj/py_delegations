@@ -46,7 +46,7 @@ class Delegation:
         if invalid_char_match:
             msg = (
                 f'The spec of {repr(spec)} contains invalid character '
-                f'"{invalid_char_match[0]}". Must only valid Python '
+                f'"{invalid_char_match[0]}". Must only contain valid Python '
                 'identifier characters and spaces.')
             raise ValueError(msg)
 
