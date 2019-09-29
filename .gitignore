@@ -1,3 +1,7 @@
+### Developer convenience ###
+# Try-stuff files, not for commit.
+___*
+
 # Created by https://www.gitignore.io/api/vim,pydev,xcode,emacs,python,pycharm,sublimetext
 # Edit at https://www.gitignore.io/?templates=vim,pydev,xcode,emacs,python,pycharm,sublimetext
 
