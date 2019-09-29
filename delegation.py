@@ -39,6 +39,10 @@ def {delegation.name}(self, new_value):
 
 
 class Delegation:
+    SPEC_DOES_NOT_FOLLOW_PATTERN_FMT = (
+        'The spec value of {} does not follow the pattern of "<keyword> to'
+        ' <keyword>" or "<keyword> to <keyword> as <keyword>".')
+
     def __init__(self, spec, with_setter=False):
         spec = spec.strip()
 
@@ -52,10 +56,8 @@ class Delegation:
 
         attr_name_and_rest_match = re.search(r'^(\w+) +to +(\w.*)', spec)
         if not attr_name_and_rest_match:
-            msg = (
-                f'The spec value of {repr(spec)} does not follow the '
-                'pattern of "<keyword> to ...".')
-            raise ValueError(msg)
+            raise ValueError(
+                self.SPEC_DOES_NOT_FOLLOW_PATTERN_FMT.format(repr(spec)))
 
         attr_and_rest = attr_name_and_rest_match.groups()
 
@@ -77,10 +79,8 @@ class Delegation:
 
         for kwd in attr_target_and_name:
             if ' ' in kwd:
-                msg = (
-                    f'Keyword {repr(kwd)} in spec contains a space, so it is '
-                    'not valid as a Python keyword.')
-                raise ValueError(msg)
+                raise ValueError(
+                    self.SPEC_DOES_NOT_FOLLOW_PATTERN_FMT.format(repr(spec)))
 
         self.attr_name, self.target_name, self.name = attr_target_and_name
         self.with_setter = with_setter

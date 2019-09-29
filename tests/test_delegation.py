@@ -4,20 +4,31 @@ import pytest
 
 
 def test_rejects_spec_without_to_clause():
-    with pytest.raises(ValueError, match=r'\bto\b'):
+    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
         Delegation("foo")
 
 
 def test_rejects_spec_with_leading_digits_in_keywords():
-    with pytest.raises(ValueError, match=r'[Dd]igit'):
+    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
         Delegation("foo to 2bar")
 
-    with pytest.raises(ValueError, match=r'[Dd]igit'):
+    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
         Delegation("3foo to bar")
 
 
+def test_rejects_spec_with_extra_word():
+    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
+        Delegation("foo to bar xyz")
+
+    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
+        Delegation("foo to bar as baz xyz")
+
+    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
+        Delegation("foo xyz to bar")
+
+
 def test_rejects_spec_with_invalid_char():
-    with pytest.raises(ValueError, match=r'[Cc]har'):
+    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
         Delegation("foo! to bar")
 
 
