@@ -1,4 +1,4 @@
-from delegation import DelegatesAttrs
+from delegation import DelegatesAttrs  # noqa: F401
 
 
 class Inner:
@@ -20,7 +20,7 @@ class Wrapper(DelegatesAttrs):
     return eval('Wrapper')
 
 
-def test_delegated_value_get():
+def test_delegates_value_get():
     Wrapper = make_wrapper_class("""
     delegate('color to inner_obj')
 """)
@@ -29,10 +29,19 @@ def test_delegated_value_get():
     assert wrapper.color == 'purple'
 
 
-def test_delegated_method_call():
+def test_delegates_method_call():
     Wrapper = make_wrapper_class("""
     delegate('get_hello to inner_obj')
 """)
     wrapper = Wrapper(Inner())
 
     assert wrapper.get_hello() == 'Hello from inner subject!'
+
+
+def test_makes_explicitly_named_delegation():
+    Wrapper = make_wrapper_class("""
+    delegate('get_hello to inner_obj as get_hi')
+""")
+    wrapper = Wrapper(Inner())
+
+    assert wrapper.get_hi() == 'Hello from inner subject!'

@@ -22,7 +22,7 @@ class DelegatesAttrsType(type):
     def __init__(cls, name, base, namespace):
         for delegation in namespace.get('_delegations', []):
             method = delegation.make_method()
-            setattr(cls, delegation.attr_name, method)
+            setattr(cls, delegation.name, method)
 
 
 class DelegatesAttrs(metaclass=DelegatesAttrsType):
@@ -31,6 +31,8 @@ class DelegatesAttrs(metaclass=DelegatesAttrsType):
 
 class Delegation:
     def __init__(self, spec):
+        spec = spec.strip()
+
         invalid_char_match = re.search(r'[^\w ]', spec)
         if invalid_char_match:
             msg = (
@@ -39,41 +41,44 @@ class Delegation:
                 'identifier characters and spaces.')
             raise ValueError(msg)
 
-        attr_and_target = spec.split(' to ')
-
-        if len(attr_and_target) < 2:
+        attr_name_and_rest_match = re.search(r'^(\w+) +to +(\w.*)', spec)
+        if not attr_name_and_rest_match:
             msg = (
-                f'The delegation spec of {repr(spec)} does not contain " to "')
+                f'The spec value of {repr(spec)} does not follow the '
+                'pattern of "<keyword> to ...".')
             raise ValueError(msg)
 
-        if len(attr_and_target) > 2:
-            msg = (
-                f'The delegation spec of {repr(spec)} contains " to " more '
-                'than once')
-            raise ValueError(msg)
+        attr_and_rest = attr_name_and_rest_match.groups()
 
-        attr_and_target = tuple(map(str.strip, attr_and_target))
+        target_and_name_match = re.search(
+            r'^(\w+) +as +(\w+)$', attr_and_rest[1])
 
-        for kwd in attr_and_target:
+        if target_and_name_match:
+            attr_target_and_name = (
+                attr_and_rest[0:1] + target_and_name_match.groups())
+        else:
+            attr_target_and_name = attr_and_rest + attr_and_rest[0:1]
+
+        for kwd in attr_target_and_name:
             if re.search(r'^\d', kwd):
                 msg = (
                     f'Keyword {repr(kwd)} in spec starts with a digit, so it '
                     'is not valid as a Python keyword.')
                 raise ValueError(msg)
 
-        for kwd in attr_and_target:
+        for kwd in attr_target_and_name:
             if ' ' in kwd:
                 msg = (
                     f'Keyword {repr(kwd)} in spec contains a space, so it is '
                     'not valid as a Python keyword.')
                 raise ValueError(msg)
 
-        self.attr_name, self.target_name = attr_and_target
+        self.attr_name, self.target_name, self.name = attr_target_and_name
 
     def make_method(self):
         exec(f"""
 @property
-def {self.attr_name}(self):
+def {self.name}(self):
     return self.{self.target_name}.{self.attr_name}
         """)
-        return eval(f'{self.attr_name}')
+        return eval(f'{self.name}')
