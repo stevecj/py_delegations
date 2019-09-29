@@ -34,6 +34,10 @@ wrapper.say_hi()
 # Prints "Hello from Inner!"
 
 wrapper.color = 'blue'
+
+print(wrapper.color)
+# Prints "blue"
+
 print(inner.color)
 # Prints "blue"
 ```
