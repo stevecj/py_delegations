@@ -9,8 +9,8 @@ class DelegatesAttrsType(type):
         super().__prepare__(name, bases)
         delegations = []
 
-        def delegate(spec):
-            delegation = Delegation(spec)
+        def delegate(spec, setter=False):
+            delegation = Delegation(spec, setter)
             delegations.append(delegation)
 
         namespace = odict()
@@ -21,8 +21,23 @@ class DelegatesAttrsType(type):
 
     def __init__(cls, name, base, namespace):
         for delegation in namespace.get('_delegations', []):
-            method = delegation.make_method()
+            method = cls.make_method(delegation)
             setattr(cls, delegation.name, method)
+
+    def make_method(cls, delegation):
+        method_def = f"""
+@property
+def {delegation.name}(self):
+    return self.{delegation.target_name}.{delegation.attr_name}
+"""
+        if delegation.with_setter:
+            method_def += f"""
+@{delegation.name}.setter
+def {delegation.name}(self, new_value):
+    self.{delegation.target_name}.{delegation.attr_name} = new_value
+"""
+        exec(method_def)
+        return eval(f'{delegation.name}')
 
 
 class DelegatesAttrs(metaclass=DelegatesAttrsType):
@@ -30,7 +45,7 @@ class DelegatesAttrs(metaclass=DelegatesAttrsType):
 
 
 class Delegation:
-    def __init__(self, spec):
+    def __init__(self, spec, with_setter=False):
         spec = spec.strip()
 
         invalid_char_match = re.search(r'[^\w ]', spec)
@@ -74,11 +89,4 @@ class Delegation:
                 raise ValueError(msg)
 
         self.attr_name, self.target_name, self.name = attr_target_and_name
-
-    def make_method(self):
-        exec(f"""
-@property
-def {self.name}(self):
-    return self.{self.target_name}.{self.attr_name}
-        """)
-        return eval(f'{self.name}')
+        self.with_setter = with_setter

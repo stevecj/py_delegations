@@ -1,5 +1,7 @@
 from delegation import DelegatesAttrs  # noqa: F401
 
+import pytest
+
 
 class Inner:
     color = 'purple'
@@ -45,3 +47,24 @@ def test_makes_explicitly_named_delegation():
     wrapper = Wrapper(Inner())
 
     assert wrapper.get_hi() == 'Hello from inner subject!'
+
+
+def test_does_not_add_setter_by_default():
+    Wrapper = make_wrapper_class("""
+    delegate('color to inner_obj')
+""")
+    wrapper = Wrapper(Inner())
+
+    with pytest.raises(AttributeError):
+        wrapper.color = 'green'
+
+
+def test_delegates_assignment_when_setter_specified():
+    Wrapper = make_wrapper_class("""
+    delegate('color to inner_obj', setter=True)
+""")
+    inner = Inner()
+    wrapper = Wrapper(inner)
+
+    wrapper.color = 'green'
+    assert inner.color == 'green'
