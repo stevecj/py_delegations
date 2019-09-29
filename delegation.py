@@ -7,42 +7,35 @@ class DelegatesAttrsType(type):
     @classmethod
     def __prepare__(mcl, name, bases):
         super().__prepare__(name, bases)
-        delegations = []
-
-        def delegate(spec, setter=False):
-            delegation = Delegation(spec, setter)
-            delegations.append(delegation)
 
         namespace = odict()
-        namespace['_delegations'] = delegations
+
+        def delegate(*args, **kwargs):
+            _delegate(namespace, *args, **kwargs)
+
         namespace['delegate'] = delegate
 
         return namespace
 
-    def __init__(cls, name, base, namespace):
-        for delegation in namespace.get('_delegations', []):
-            method = cls.make_method(delegation)
-            setattr(cls, delegation.name, method)
 
-    def make_method(cls, delegation):
-        ex_locals = {}
-        method_def = f"""
+class DelegatesAttrs(metaclass=DelegatesAttrsType):
+    pass
+
+
+def _delegate(namespace, spec, setter=False):
+    delegation = Delegation(spec, setter)
+    method_def = f"""
 @property
 def {delegation.name}(self):
     return self.{delegation.target_name}.{delegation.attr_name}
 """
-        if delegation.with_setter:
-            method_def += f"""
+    if delegation.with_setter:
+        method_def += f"""
 @{delegation.name}.setter
 def {delegation.name}(self, new_value):
     self.{delegation.target_name}.{delegation.attr_name} = new_value
 """
-        exec(method_def, {}, ex_locals)
-        return ex_locals[delegation.name]
-
-
-class DelegatesAttrs(metaclass=DelegatesAttrsType):
-    pass
+    exec(method_def, {}, namespace)
 
 
 class Delegation:
