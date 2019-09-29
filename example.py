@@ -1,14 +1,3 @@
-Delegation
-==========
-Delegation implements a DSL in Python that generates getters and setters
-to delegate attribute access through one object to another.
-
-Currently, this is simply implemented as code that you cam copy into your
-own project (but see LICENSE) and is not an import package.
-
-Usage Example
---------------
-```python
 from delegation import DelegatesAttrs
 
 
@@ -36,8 +25,7 @@ wrapper.say_hi()
 wrapper.color = 'blue'
 print(inner.color)
 # Prints "blue"
-```
 
-Requirements
-------------
-Python 3.x
+import delegation
+
+print(dir(Wrapper.say_hi))
