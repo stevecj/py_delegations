@@ -1,4 +1,5 @@
 from collections import OrderedDict as odict
+import re
 
 
 class DelegatesAttrsType(type):
@@ -30,7 +31,43 @@ class DelegatesAttrs(metaclass=DelegatesAttrsType):
 
 class Delegation:
     def __init__(self, spec):
+        invalid_char_match = re.search(r'[^\w ]', spec)
+        if invalid_char_match:
+            msg = (
+                f'The spec of {repr(spec)} contains invalid character '
+                f'"{invalid_char_match[0]}". Must only valid Python '
+                'identifier characters and spaces.')
+            raise ValueError(msg)
+
         attr_and_target = spec.split(' to ')
+
+        if len(attr_and_target) < 2:
+            msg = (
+                f'The delegation spec of {repr(spec)} does not contain " to "')
+            raise ValueError(msg)
+
+        if len(attr_and_target) > 2:
+            msg = (
+                f'The delegation spec of {repr(spec)} contains " to " more '
+                'than once')
+            raise ValueError(msg)
+
+        attr_and_target = tuple(map(str.strip, attr_and_target))
+
+        for kwd in attr_and_target:
+            if re.search(r'^\d', kwd):
+                msg = (
+                    f'Keyword {repr(kwd)} in spec starts with a digit, so it '
+                    'is not valid as a Python keyword.')
+                raise ValueError(msg)
+
+        for kwd in attr_and_target:
+            if ' ' in kwd:
+                msg = (
+                    f'Keyword {repr(kwd)} in spec contains a space, so it is '
+                    'not valid as a Python keyword.')
+                raise ValueError(msg)
+
         self.attr_name, self.target_name = attr_and_target
 
     def make_method(self):
