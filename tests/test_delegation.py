@@ -1,40 +1,45 @@
-from delegation import Delegation
+from delegation import Delegation, SpecValueError
 
 import pytest
 
 
 def test_rejects_spec_without_to_clause():
-    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
+    with pytest.raises(SpecValueError):
         Delegation("foo")
 
 
-def test_rejects_spec_with_leading_digits_in_keywords():
-    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
-        Delegation("foo to 2bar")
+def test_rejects_spec_with_leading_digit_in_keyword():
+    specs = (
+        'foo to 2bar',
+        '3foo to bar',
+        )
 
-    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
-        Delegation("3foo to bar")
+    for spec in specs:
+        with pytest.raises(SpecValueError):
+            Delegation(spec)
 
 
 def test_rejects_spec_with_extra_word():
-    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
-        Delegation("foo to bar xyz")
+    specs = (
+        'foo to bar xyz',
+        'foo to bar as baz xyz',
+        'foo xyz to bar',
+        )
 
-    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
-        Delegation("foo to bar as baz xyz")
-
-    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
-        Delegation("foo xyz to bar")
+    for spec in specs:
+        with pytest.raises(SpecValueError):
+            Delegation(spec)
 
 
 def test_rejects_spec_with_invalid_char():
-    with pytest.raises(ValueError, match=r'\b[Ss]pec\b'):
+    with pytest.raises(SpecValueError):
         Delegation("foo! to bar")
 
 
 def test_parses_valid_minimal_spec():
     deleg = Delegation("foo to bar")
-    assert (deleg.attr_name, deleg.target_name) == ('foo', 'bar')
+    attr_target = (deleg.attr_name, deleg.target_name)
+    assert attr_target == ('foo', 'bar')
 
 
 def test_parses_valid_spec_with_name():

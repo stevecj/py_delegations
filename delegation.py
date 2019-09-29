@@ -2,6 +2,10 @@ from collections import OrderedDict as odict
 import re
 
 
+class SpecValueError(ValueError):
+    pass
+
+
 class DelegatesAttrsType(type):
 
     @classmethod
@@ -52,11 +56,11 @@ class Delegation:
                 f'The spec of {repr(spec)} contains invalid character '
                 f'"{invalid_char_match[0]}". Must only contain valid Python '
                 'identifier characters and spaces.')
-            raise ValueError(msg)
+            raise SpecValueError(msg)
 
         attr_name_and_rest_match = re.search(r'^(\w+) +to +(\w.*)', spec)
         if not attr_name_and_rest_match:
-            raise ValueError(
+            raise SpecValueError(
                 self.SPEC_DOES_NOT_FOLLOW_PATTERN_FMT.format(repr(spec)))
 
         attr_and_rest = attr_name_and_rest_match.groups()
@@ -75,11 +79,11 @@ class Delegation:
                 msg = (
                     f'Keyword {repr(kwd)} in spec starts with a digit, so it '
                     'is not valid as a Python keyword.')
-                raise ValueError(msg)
+                raise SpecValueError(msg)
 
         for kwd in attr_target_and_name:
             if ' ' in kwd:
-                raise ValueError(
+                raise SpecValueError(
                     self.SPEC_DOES_NOT_FOLLOW_PATTERN_FMT.format(repr(spec)))
 
         self.attr_name, self.target_name, self.name = attr_target_and_name
